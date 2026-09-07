@@ -3,27 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog</title>
+    <title>{% block title %}Scribe — заметки, которыми делятся{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
     <script>
         window.API_BASE = "{{ api_base|default('/api') }}";
     </script>
 </head>
 <body>
-<header>
-    <a class="brand" href="/">Blog</a>
-    <nav>
-        <a href="/">Public posts</a>
+<header class="site-header">
+    <a class="brand" href="/" aria-label="Scribe — на главную">
+        <span class="brand-mark">S</span><span>Scribe</span>
+    </a>
+    <nav class="site-nav" aria-label="Основная навигация">
+        <a href="/">Лента</a>
         {% if request.session.get('user_id') %}
-            <a href="/profile">Profile</a>
-            <a href="/logout">Logout</a>
+            <a href="/profile">Профиль</a>
+            <a class="nav-logout" href="/logout">Выйти</a>
         {% else %}
-            <a href="/login">Login</a>
+            <a class="nav-login" href="/login">Войти</a>
         {% endif %}
     </nav>
 </header>
 <main>
     {% block content %}{% endblock %}
 </main>
+<footer class="site-footer"><span>© 2026 Scribe</span><span>Место для хороших мыслей</span></footer>
 </body>
 </html>

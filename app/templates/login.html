@@ -1,19 +1,27 @@
 {% extends "base.html" %}
 
+{% block title %}Вход — Scribe{% endblock %}
+
 {% block content %}
-    <h1>Login</h1>
-
-    <form method="post" action="/login" class="form">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" value="user@example.com" required>
-
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" value="password" required>
-
-        <button type="submit">Login</button>
-    </form>
-
-    {% if error %}
-        <p class="error">Invalid email or password.</p>
-    {% endif %}
+    <section class="auth-layout">
+        <div class="auth-intro">
+            <p class="eyebrow">SCRIBE / ВОЙТИ</p>
+            <h1>Вернитесь<br>к своим <em>мыслям.</em></h1>
+            <p>Продолжайте писать, читать и собирать важное в одном спокойном пространстве.</p>
+            <div class="auth-quote">«Иногда одной фразы достаточно, чтобы всё стало яснее.»</div>
+        </div>
+        <div class="auth-panel">
+            <div class="auth-panel-heading">
+                <span class="panel-icon">↗</span><h2>С возвращением</h2><p>Введите данные, чтобы продолжить.</p>
+            </div>
+            <form method="post" action="/login" class="form auth-form">
+                <label for="email">Электронная почта</label>
+                <input type="email" id="email" name="email" value="user@example.com" required autocomplete="email">
+                <label for="password">Пароль</label>
+                <input type="password" id="password" name="password" value="password" required autocomplete="current-password">
+                <button type="submit">Войти в Scribe <span aria-hidden="true">→</span></button>
+            </form>
+            {% if error %}<p class="error">Не удалось войти. Проверьте почту и пароль.</p>{% endif %}
+        </div>
+    </section>
 {% endblock %}

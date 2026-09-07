@@ -1,33 +1,35 @@
 {% extends "base.html" %}
 
+{% block title %}Scribe — лента публикаций{% endblock %}
+
 {% block content %}
     <section class="hero">
-        <h1>Добро пожаловать в наш блог</h1>
-        <p>Делитесь мыслями, читайте интересные посты и присоединяйтесь к сообществу авторов.</p>
+        <div class="hero-copy">
+            <p class="eyebrow">ЛИЧНЫЙ БЛОГ БЕЗ ЛИШНЕГО ШУМА</p>
+            <h1>Мысли, которые<br><em>стоит</em> сохранить.</h1>
+            <p class="hero-description">Читайте короткие заметки, делитесь наблюдениями и находите идеи для следующего шага.</p>
+            {% if not is_authenticated %}<a class="button button-light" href="/login">Присоединиться <span aria-hidden="true">→</span></a>{% endif %}
+        </div>
+        <div class="hero-orbit" aria-hidden="true">
+            <span class="orbit-note note-one">идея</span><span class="orbit-note note-two">мысль</span><span class="orbit-note note-three">вдохновение</span><div class="hero-star">✦</div>
+        </div>
     </section>
 
     {% if is_authenticated %}
     <form id="create-post-form" class="form">
-        <h2>Создать новый пост</h2>
-        
+        <div class="form-heading"><p class="eyebrow">НОВАЯ ПУБЛИКАЦИЯ</p><h2>Есть чем поделиться?</h2></div>
         <label for="title">Заголовок</label>
         <input type="text" id="title" name="title" placeholder="Введите заголовок поста" required>
-        
-        <label for="content">Содержание</label>
-        <textarea id="content" name="content" placeholder="Напишите что-нибудь интересное..." required></textarea>
-        
-        <button type="submit">Опубликовать пост</button>
+        <label for="content">Текст заметки</label>
+        <textarea id="content" name="content" placeholder="Напишите что-нибудь интересное…" required></textarea>
+        <button type="submit">Опубликовать <span aria-hidden="true">→</span></button>
         <p id="post-error" class="error" style="display: none;"></p>
     </form>
     {% endif %}
 
-    <h2 class="section-title">Последние публикации</h2>
-
+    <div class="feed-heading"><div><p class="eyebrow">СВЕЖЕЕ</p><h2 class="section-title">Лента публикаций</h2></div><span class="feed-label">Все заметки сообщества</span></div>
     <div id="posts" class="cards">
-        <div class="empty-state">
-            <div class="empty-state-icon">📝</div>
-            <p>Загрузка постов...</p>
-        </div>
+        <div class="empty-state"><div class="empty-state-icon">📝</div><p>Загружаем публикации…</p></div>
     </div>
 
     <script>
@@ -37,53 +39,31 @@
         function renderPost(post) {
             const article = document.createElement("article");
             article.className = "card";
-
             const title = document.createElement("h2");
             title.textContent = post.title;
-
             const content = document.createElement("p");
             content.textContent = post.content;
-
             const author = document.createElement("span");
             author.className = "author";
             author.textContent = post.author;
-
-            article.appendChild(title);
-            article.appendChild(content);
-            article.appendChild(author);
-
+            article.append(title, content, author);
             postsContainer.appendChild(article);
         }
 
         function loadPosts() {
-            postsContainer.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">📝</div>
-                    <p>Загрузка постов...</p>
-                </div>
-            `;
+            postsContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><p>Загружаем публикации…</p></div>';
             fetch(window.API_BASE + "/posts")
                 .then(response => response.json())
                 .then(posts => {
                     postsContainer.innerHTML = "";
                     if (!posts.length) {
-                        postsContainer.innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-state-icon">📭</div>
-                                <p>Пока нет публикаций. Станьте первым автором!</p>
-                            </div>
-                        `;
+                        postsContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>Пока нет публикаций. Станьте первым автором!</p></div>';
                         return;
                     }
                     posts.forEach(renderPost);
                 })
                 .catch(() => {
-                    postsContainer.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-state-icon">⚠️</div>
-                            <p>Не удалось загрузить посты.</p>
-                        </div>
-                    `;
+                    postsContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Не удалось загрузить посты.</p></div>';
                 });
         }
 
@@ -92,31 +72,16 @@
         if (isAuth) {
             const form = document.getElementById("create-post-form");
             const errorEl = document.getElementById("post-error");
-
-            form.addEventListener("submit", async (e) => {
-                e.preventDefault();
+            form.addEventListener("submit", async (event) => {
+                event.preventDefault();
                 errorEl.style.display = "none";
-
-                const formData = new FormData(form);
-                
                 try {
-                    const response = await fetch(window.API_BASE + "/posts", {
-                        method: "POST",
-                        body: formData
-                    });
-
-                    if (response.status === 401) {
-                        window.location.href = "/login";
-                        return;
-                    }
-
-                    if (!response.ok) {
-                        throw new Error("Failed to create post");
-                    }
-
+                    const response = await fetch(window.API_BASE + "/posts", { method: "POST", body: new FormData(form) });
+                    if (response.status === 401) { window.location.href = "/login"; return; }
+                    if (!response.ok) { throw new Error("Failed to create post"); }
                     form.reset();
                     loadPosts();
-                } catch (err) {
+                } catch (error) {
                     errorEl.textContent = "Ошибка при публикации поста.";
                     errorEl.style.display = "block";
                 }

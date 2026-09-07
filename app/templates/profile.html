@@ -1,8 +1,12 @@
 {% extends "base.html" %}
 
+{% block title %}Профиль — Scribe{% endblock %}
+
 {% block content %}
-    <h1>Profile</h1>
-    <div id="profile" class="card">Loading...</div>
+    <section class="profile-page">
+        <div class="profile-heading"><p class="eyebrow">ВАШЕ ПРОСТРАНСТВО</p><h1>Профиль автора</h1><p>Здесь собраны детали вашей учётной записи и личная заметка.</p></div>
+        <div id="profile" class="profile-card"><div class="profile-loading"><span></span> Загружаем ваш профиль…</div></div>
+    </section>
 
     <script>
         fetch(window.API_BASE + "/profile", {credentials: "same-origin"})
@@ -22,22 +26,39 @@
                 const container = document.getElementById("profile");
                 container.innerHTML = "";
 
+                const identity = document.createElement("div");
+                identity.className = "profile-identity";
+                const avatar = document.createElement("div");
+                avatar.className = "profile-avatar";
+                avatar.textContent = data.email.charAt(0).toUpperCase();
+                const identityText = document.createElement("div");
+                const title = document.createElement("h2");
+                title.textContent = data.email.split("@")[0];
                 const email = document.createElement("p");
-                email.textContent = "Email: " + data.email;
+                email.textContent = data.email;
+                identityText.append(title, email);
+                identity.append(avatar, identityText);
 
+                const details = document.createElement("div");
+                details.className = "profile-details";
+                const detailLabel = document.createElement("span");
+                detailLabel.textContent = "УЧЁТНАЯ ЗАПИСЬ";
                 const createdAt = document.createElement("p");
-                createdAt.textContent = "Registered: " + data.created_at;
+                createdAt.textContent = "С нами с " + data.created_at;
+                details.append(detailLabel, createdAt);
 
-                const secret = document.createElement("p");
+                const secret = document.createElement("div");
                 secret.className = "secret";
-                secret.textContent = data.secret_note;
+                const secretLabel = document.createElement("span");
+                secretLabel.textContent = "ЛИЧНАЯ ЗАМЕТКА";
+                const secretText = document.createElement("p");
+                secretText.textContent = data.secret_note;
+                secret.append(secretLabel, secretText);
 
-                container.appendChild(email);
-                container.appendChild(createdAt);
-                container.appendChild(secret);
+                container.append(identity, details, secret);
             })
             .catch(() => {
-                document.getElementById("profile").textContent = "Failed to load profile.";
+                document.getElementById("profile").textContent = "Не удалось загрузить профиль.";
             });
     </script>
 {% endblock %}
