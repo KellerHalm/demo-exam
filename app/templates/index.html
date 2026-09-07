@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <section class="hero">
+        <h1>Добро пожаловать в наш блог</h1>
+        <p>Делитесь мыслями, читайте интересные посты и присоединяйтесь к сообществу авторов.</p>
+    </section>
+
+    {% if is_authenticated %}
+    <form id="create-post-form" class="form">
+        <h2>Создать новый пост</h2>
+        
+        <label for="title">Заголовок</label>
+        <input type="text" id="title" name="title" placeholder="Введите заголовок поста" required>
+        
+        <label for="content">Содержание</label>
+        <textarea id="content" name="content" placeholder="Напишите что-нибудь интересное..." required></textarea>
+        
+        <button type="submit">Опубликовать пост</button>
+        <p id="post-error" class="error" style="display: none;"></p>
+    </form>
+    {% endif %}
+
+    <h2 class="section-title">Последние публикации</h2>
+
+    <div id="posts" class="cards">
+        <div class="empty-state">
+            <div class="empty-state-icon">📝</div>
+            <p>Загрузка постов...</p>
+        </div>
+    </div>
+
+    <script>
+        const postsContainer = document.getElementById("posts");
+        const isAuth = {{ 'true' if is_authenticated else 'false' }};
+
+        function renderPost(post) {
+            const article = document.createElement("article");
+            article.className = "card";
+
+            const title = document.createElement("h2");
+            title.textContent = post.title;
+
+            const content = document.createElement("p");
+            content.textContent = post.content;
+
+            const author = document.createElement("span");
+            author.className = "author";
+            author.textContent = post.author;
+
+            article.appendChild(title);
+            article.appendChild(content);
+            article.appendChild(author);
+
+            postsContainer.appendChild(article);
+        }
+
+        function loadPosts() {
+            postsContainer.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <p>Загрузка постов...</p>
+                </div>
+            `;
+            fetch(window.API_BASE + "/posts")
+                .then(response => response.json())
+                .then(posts => {
+                    postsContainer.innerHTML = "";
+                    if (!posts.length) {
+                        postsContainer.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📭</div>
+                                <p>Пока нет публикаций. Станьте первым автором!</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    posts.forEach(renderPost);
+                })
+                .catch(() => {
+                    postsContainer.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">⚠️</div>
+                            <p>Не удалось загрузить посты.</p>
+                        </div>
+                    `;
+                });
+        }
+
+        loadPosts();
+
+        if (isAuth) {
+            const form = document.getElementById("create-post-form");
+            const errorEl = document.getElementById("post-error");
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                errorEl.style.display = "none";
+
+                const formData = new FormData(form);
+                
+                try {
+                    const response = await fetch(window.API_BASE + "/posts", {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    if (response.status === 401) {
+                        window.location.href = "/login";
+                        return;
+                    }
+
+                    if (!response.ok) {
+                        throw new Error("Failed to create post");
+                    }
+
+                    form.reset();
+                    loadPosts();
+                } catch (err) {
+                    errorEl.textContent = "Ошибка при публикации поста.";
+                    errorEl.style.display = "block";
+                }
+            });
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <script>
+        window.API_BASE = "{{ api_base|default('/api') }}";
+    </script>
+</head>
+<body>
+<header>
+    <a class="brand" href="/">Blog</a>
+    <nav>
+        <a href="/">Public posts</a>
+        {% if request.session.get('user_id') %}
+            <a href="/profile">Profile</a>
+            <a href="/logout">Logout</a>
+        {% else %}
+            <a href="/login">Login</a>
+        {% endif %}
+    </nav>
+</header>
+<main>
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Profile</h1>
+    <div id="profile" class="card">Loading...</div>
+
+    <script>
+        fetch(window.API_BASE + "/profile", {credentials: "same-origin"})
+            .then(response => {
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return null;
+                }
+
+                return response.json();
+            })
+            .then(data => {
+                if (!data) {
+                    return;
+                }
+
+                const container = document.getElementById("profile");
+                container.innerHTML = "";
+
+                const email = document.createElement("p");
+                email.textContent = "Email: " + data.email;
+
+                const createdAt = document.createElement("p");
+                createdAt.textContent = "Registered: " + data.created_at;
+
+                const secret = document.createElement("p");
+                secret.className = "secret";
+                secret.textContent = data.secret_note;
+
+                container.appendChild(email);
+                container.appendChild(createdAt);
+                container.appendChild(secret);
+            })
+            .catch(() => {
+                document.getElementById("profile").textContent = "Failed to load profile.";
+            });
+    </script>
+{% endblock %}
