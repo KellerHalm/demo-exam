@@ -152,7 +152,6 @@ h1 em {
 }
 .button:hover, button:hover { 
     transform: translateY(-2px); 
-    box-shadow: 0 10px 22px rgba(0, 0, 0, .13); 
 }
 .button-light { 
     margin-top: 30px; 
@@ -326,8 +325,7 @@ button:hover {
     transition: transform .2s ease, box-shadow .2s ease; 
 }
 .card:hover { 
-    transform: translateY(-4px); 
-    box-shadow: 0 8px 0 var(--yellow); 
+    transform: translateY(-4px);
 }
 .card h2 { 
     margin-bottom: 14px; 
