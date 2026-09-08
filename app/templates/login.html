@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Вход — Scribe{% endblock %}
+{% block title %}Вход{% endblock %}
 
 {% block content %}
     <section class="auth-layout">
         <div class="auth-intro">
-            <p class="eyebrow">SCRIBE / ВОЙТИ</p>
+            <p class="eyebrow">ВОЙТИ</p>
             <h1>Вернитесь<br>к своим <em>мыслям.</em></h1>
             <p>Продолжайте писать, читать и собирать важное в одном спокойном пространстве.</p>
             <div class="auth-quote">«Иногда одной фразы достаточно, чтобы всё стало яснее.»</div>
@@ -19,7 +19,7 @@
                 <input type="email" id="email" name="email" value="user@example.com" required autocomplete="email">
                 <label for="password">Пароль</label>
                 <input type="password" id="password" name="password" value="password" required autocomplete="current-password">
-                <button type="submit">Войти в Scribe <span aria-hidden="true">→</span></button>
+                <button type="submit">Войти<span aria-hidden="true">→</span></button>
             </form>
             {% if error %}<p class="error">Не удалось войти. Проверьте почту и пароль.</p>{% endif %}
         </div>
