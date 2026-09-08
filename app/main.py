@@ -11,7 +11,7 @@ from .database import init_db, get_user_by_email, get_user_by_id, get_posts, cre
 
 BASE_DIR = Path(__file__).resolve().parent
 API_BASE = "/api"
-SECRET_KEY = "change-me"
+SECRET_KEY = "your secret key"
 
 
 @asynccontextmanager
