@@ -236,7 +236,6 @@ h1 em {
     border: 1px solid var(--line); 
     border-radius: 18px; 
     background: var(--card); 
-    box-shadow: 7px 8px 0 var(--mint); 
 }
 .form-heading { 
     margin-bottom: 12px; 
@@ -436,7 +435,6 @@ button:hover {
     border: 1px solid var(--line); 
     border-radius: 18px; 
     background: var(--card); 
-    box-shadow: 8px 8px 0 var(--yellow); 
 }.profile-identity { 
     display: flex; 
     align-items: center; 
