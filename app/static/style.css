@@ -18,6 +18,7 @@
 
 body {
     min-height: 100vh;
+    overflow-x: hidden;
     background: var(--paper);
     color: var(--ink);
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -41,8 +42,10 @@ body::before {
 }
 .site-header { 
     display: flex; 
+    flex-wrap: wrap;
     align-items: center; 
     justify-content: space-between; 
+    gap: 10px 16px;
     padding: 23px 0; 
 }
 
@@ -71,6 +74,9 @@ body::before {
 }
 
 .site-nav { 
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 25px; 
 }
 .site-nav a { 
@@ -104,6 +110,7 @@ body::before {
     border-radius: 28px; 
     background: var(--ink); 
     color: #fffdf8; 
+    max-width: 100%;
 }
 .hero-copy { 
     padding: 63px 55px; 
@@ -374,6 +381,7 @@ button:hover {
     border-radius: 26px; 
     overflow: hidden; 
     background: var(--card); 
+    max-width: 100%;
 }.auth-intro { 
     padding: 75px 60px; 
     background: var(--mint); 
@@ -519,12 +527,31 @@ button:hover {
     } 
 }
 
+@media (max-width: 1024px) {
+    .hero { 
+        min-height: 0; 
+    }.hero-copy { 
+        padding: 48px 38px; 
+    }.auth-layout { 
+        min-height: 0; 
+    }.auth-intro { 
+        padding: 55px 40px; 
+    }.auth-panel { 
+        padding: 55px 40px; 
+    }.auth-quote { 
+        margin-top: 70px; 
+    }.profile-heading h1 { 
+        font-size: 42px; 
+    }
+}
+
 @media (max-width: 720px) {
     .site-header, main, .site-footer { 
         width: min(100% - 28px, 1160px); 
     }.site-header { 
         padding: 16px 0; 
     }.site-nav { 
+        flex-wrap: wrap;
         gap: 12px; 
     }.site-nav a { 
         font-size: 12px; 
@@ -566,5 +593,53 @@ button:hover {
         gap: 15px; 
     }.cards { 
         grid-template-columns: 1fr; 
+    }
+}
+
+@media (max-width: 480px) {
+    .site-header { 
+        flex-direction: column; 
+        gap: 12px; 
+        padding: 14px 0; 
+    }.site-nav { 
+        flex-wrap: wrap; 
+        justify-content: center; 
+        gap: 10px 14px; 
+    }.hero h1, .auth-intro h1 { 
+        font-size: 34px; 
+    }.hero-description { 
+        font-size: 15px; 
+    }.button-light { 
+        width: 100%; 
+        margin-top: 24px; 
+    }.hero-copy { 
+        padding: 38px 22px; 
+    }.auth-intro, .auth-panel { 
+        padding: 34px 22px; 
+    }.auth-panel h2 { 
+        font-size: 27px; 
+    }.section-title { 
+        font-size: 28px; 
+    }.profile-heading h1 { 
+        font-size: 32px; 
+    }.profile-card { 
+        padding: 22px 16px; 
+    }.profile-identity { 
+        gap: 14px; 
+    }.profile-avatar { 
+        width: 52px; 
+        height: 52px; 
+        flex: 0 0 52px; 
+        font-size: 24px; 
+    }.profile-identity h2 { 
+        font-size: 22px; 
+    }.form:not(.auth-form) button { 
+        width: 100%; 
+    }input, textarea { 
+        font-size: 16px; 
+    }.site-footer { 
+        flex-direction: column; 
+        gap: 8px; 
+        text-align: center; 
     }
 }
