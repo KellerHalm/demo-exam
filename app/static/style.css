@@ -417,6 +417,22 @@ button:hover {
     width: 100%; 
     margin-top: 16px; 
 }
+.form-link {
+    margin-top: 18px;
+    color: var(--muted);
+    font-size: 14px;
+}
+.form-link a { color: var(--accent-dark); font-weight: 800; }
+.success {
+    margin-top: 18px;
+    padding: 10px 12px;
+    border-left: 3px solid #578160;
+    border-radius: 5px;
+    background: #edf5e8;
+    color: #38523e;
+    font-size: 14px;
+}
+.profile-form { margin-top: 30px; }
 
 .profile-page { 
     width: min(800px, 100%); 

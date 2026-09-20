@@ -17,10 +17,12 @@
     <nav class="site-nav" aria-label="Основная навигация">
         <a href="/">Лента</a>
         {% if request.session.get('user_id') %}
+            <a href="/posts/new">Новый пост</a>
             <a href="/profile">Профиль</a>
             <a class="nav-logout" href="/logout">Выйти</a>
         {% else %}
             <a class="nav-login" href="/login">Войти</a>
+            <a href="/register">Регистрация</a>
         {% endif %}
     </nav>
 </header>

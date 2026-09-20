@@ -7,7 +7,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
-from .database import init_db, get_user_by_email, get_user_by_id, get_posts, create_post, hash_password
+from .database import (
+    init_db, get_user_by_email, get_user_by_id, get_user_by_username,
+    get_posts, create_post, create_user, update_user, hash_password,
+)
 
 BASE_DIR = Path(__file__).resolve().parent
 API_BASE = "/api"
@@ -50,6 +53,53 @@ async def login_page(request: Request):
     )
 
 
+@app.get("/register")
+async def register_page(request: Request):
+    if request.session.get("user_id"):
+        return RedirectResponse(url="/profile", status_code=303)
+    return templates.TemplateResponse(
+        name="register.html", request=request,
+        context={"error": None, "api_base": API_BASE}
+    )
+
+
+def validate_account_data(username: str, email: str, password: str, password_required: bool = True):
+    username = username.strip()
+    email = email.strip().lower()
+    if len(username) < 3 or len(username) > 32:
+        return None, "Имя пользователя должно содержать от 3 до 32 символов."
+    if not all(character.isalnum() or character in "_-" for character in username):
+        return None, "Имя пользователя может содержать только буквы, цифры, «_» и «-»."
+    if "@" not in email or email.startswith("@") or email.endswith("@"):
+        return None, "Введите корректный адрес электронной почты."
+    if (password_required or password) and len(password) < 6:
+        return None, "Пароль должен содержать не менее 6 символов."
+    return (username, email), None
+
+
+@app.post("/register")
+async def register(request: Request, username: str = Form(...), email: str = Form(...), password: str = Form(...)):
+    account_data, error = validate_account_data(username, email, password)
+    if error:
+        return templates.TemplateResponse(
+            name="register.html", request=request,
+            context={"error": error, "api_base": API_BASE}, status_code=400
+        )
+
+    username, email = account_data
+    if get_user_by_username(username) or get_user_by_email(email):
+        return templates.TemplateResponse(
+            name="register.html", request=request,
+            context={"error": "Пользователь с таким именем или почтой уже существует.", "api_base": API_BASE},
+            status_code=409
+        )
+
+    user = create_user(username, email, password)
+    request.session["user_id"] = user["id"]
+    request.session["email"] = user["email"]
+    return RedirectResponse(url="/profile", status_code=303)
+
+
 @app.post("/login")
 async def login(request: Request, email: str = Form(...), password: str = Form(...)):
     user = get_user_by_email(email.strip().lower())
@@ -79,11 +129,88 @@ async def profile(request: Request):
     if not request.session.get("user_id"):
         return RedirectResponse(url="/login", status_code=303)
 
+    user = get_user_by_id(request.session["user_id"])
+    if not user:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
     return templates.TemplateResponse(
-        name="profile.html",
-        request=request,
-        context={"api_base": API_BASE}
+        name="profile.html", request=request,
+        context={"api_base": API_BASE, "user": user, "error": None, "success": False}
     )
+
+
+@app.post("/profile")
+async def update_profile(
+    request: Request,
+    username: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(""),
+):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=303)
+
+    current_user = get_user_by_id(user_id)
+    if not current_user:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    account_data, error = validate_account_data(username, email, password, password_required=False)
+    if error:
+        return templates.TemplateResponse(
+            name="profile.html", request=request,
+            context={"api_base": API_BASE, "user": current_user, "error": error, "success": False},
+            status_code=400
+        )
+
+    username, email = account_data
+    username_owner = get_user_by_username(username)
+    email_owner = get_user_by_email(email)
+    if ((username_owner and username_owner["id"] != user_id) or
+            (email_owner and email_owner["id"] != user_id)):
+        return templates.TemplateResponse(
+            name="profile.html", request=request,
+            context={"api_base": API_BASE, "user": current_user, "error": "Имя пользователя или почта уже заняты.", "success": False},
+            status_code=409
+        )
+
+    user = update_user(user_id, username, email, password or None)
+    request.session["email"] = user["email"]
+    return templates.TemplateResponse(
+        name="profile.html", request=request,
+        context={"api_base": API_BASE, "user": user, "error": None, "success": True}
+    )
+
+
+@app.get("/posts/new")
+async def new_post_page(request: Request):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=303)
+    return templates.TemplateResponse(
+        name="new_post.html", request=request,
+        context={"api_base": API_BASE, "error": None}
+    )
+
+
+@app.post("/posts/new")
+async def new_post(request: Request, title: str = Form(...), content: str = Form(...)):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=303)
+    user = get_user_by_id(user_id)
+    clean_title = title.strip()
+    clean_content = content.strip()
+    if not user:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if not clean_title or not clean_content:
+        return templates.TemplateResponse(
+            name="new_post.html", request=request,
+            context={"api_base": API_BASE, "error": "Заполните заголовок и текст публикации."},
+            status_code=400
+        )
+    create_post(clean_title, clean_content, user["username"])
+    return RedirectResponse(url="/", status_code=303)
 
 
 @app.get(API_BASE + "/health")
@@ -124,7 +251,7 @@ async def api_create_post(request: Request, title: str = Form(...), content: str
             content={"detail": "Title and content cannot be empty"}
         )
 
-    return create_post(clean_title, clean_content, user["email"])
+    return create_post(clean_title, clean_content, user["username"])
 
 
 @app.get(API_BASE + "/profile")
@@ -148,6 +275,7 @@ async def api_profile(request: Request):
 
     return {
         "id": user["id"],
+        "username": user["username"],
         "email": user["email"],
         "created_at": str(user["created_at"]),
         "secret_note": user["secret_note"]

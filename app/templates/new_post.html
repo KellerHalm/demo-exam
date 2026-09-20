@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Новый пост{% endblock %}
+
+{% block content %}
+    <section class="profile-page">
+        <div class="profile-heading">
+            <p class="eyebrow">НОВАЯ ПУБЛИКАЦИЯ</p>
+            <h1>Поделитесь мыслью</h1>
+            <p>Ваш пост сразу появится в общей ленте.</p>
+        </div>
+        <form method="post" action="/posts/new" class="form">
+            <label for="title">Заголовок</label>
+            <input type="text" id="title" name="title" required maxlength="200" placeholder="Введите заголовок поста">
+            <label for="content">Текст публикации</label>
+            <textarea id="content" name="content" required placeholder="Напишите что-нибудь интересное…"></textarea>
+            <button type="submit">Опубликовать <span aria-hidden="true">→</span></button>
+            {% if error %}<p class="error">{{ error }}</p>{% endif %}
+        </form>
+    </section>
+{% endblock %}

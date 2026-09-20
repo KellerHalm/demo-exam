@@ -8,30 +8,24 @@
             <p class="eyebrow">ЛИЧНЫЙ БЛОГ БЕЗ ЛИШНЕГО ШУМА</p>
             <h1>Мысли, которые<br>стоит сохранить.</h1>
             <p class="hero-description">Читайте короткие заметки, делитесь наблюдениями и находите идеи для следующего шага.</p>
-            {% if not is_authenticated %}<a class="button button-light" href="/login">Присоединиться <span aria-hidden="true">→</span></a>{% endif %}
+            {% if is_authenticated %}
+                <a class="button button-light" href="/posts/new">Добавить пост <span aria-hidden="true">→</span></a>
+            {% else %}
+                <a class="button button-light" href="/register">Присоединиться <span aria-hidden="true">→</span></a>
+            {% endif %}
         </div>
     </section>
 
-    {% if is_authenticated %}
-    <form id="create-post-form" class="form">
-        <div class="form-heading"><p class="eyebrow">НОВАЯ ПУБЛИКАЦИЯ</p><h2>Есть чем поделиться?</h2></div>
-        <label for="title">Заголовок</label>
-        <input type="text" id="title" name="title" placeholder="Введите заголовок поста" required>
-        <label for="content">Текст заметки</label>
-        <textarea id="content" name="content" placeholder="Напишите что-нибудь интересное…" required></textarea>
-        <button type="submit">Опубликовать <span aria-hidden="true">→</span></button>
-        <p id="post-error" class="error" style="display: none;"></p>
-    </form>
-    {% endif %}
-
-    <div class="feed-heading"><div><p class="eyebrow">СВЕЖЕЕ</p><h2 class="section-title">Лента публикаций</h2></div><span class="feed-label">Все заметки сообщества</span></div>
+    <div class="feed-heading">
+        <div><p class="eyebrow">СВЕЖЕЕ</p><h2 class="section-title">Лента публикаций</h2></div>
+        <span class="feed-label">Все заметки сообщества</span>
+    </div>
     <div id="posts" class="cards">
         <div class="empty-state"><div class="empty-state-icon">📝</div><p>Загружаем публикации…</p></div>
     </div>
 
     <script>
         const postsContainer = document.getElementById("posts");
-        const isAuth = {{ 'true' if is_authenticated else 'false' }};
 
         function renderPost(post) {
             const article = document.createElement("article");
@@ -47,42 +41,18 @@
             postsContainer.appendChild(article);
         }
 
-        function loadPosts() {
-            postsContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><p>Загружаем публикации…</p></div>';
-            fetch(window.API_BASE + "/posts")
-                .then(response => response.json())
-                .then(posts => {
-                    postsContainer.innerHTML = "";
-                    if (!posts.length) {
-                        postsContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>Пока нет публикаций. Станьте первым автором!</p></div>';
-                        return;
-                    }
-                    posts.forEach(renderPost);
-                })
-                .catch(() => {
-                    postsContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Не удалось загрузить посты.</p></div>';
-                });
-        }
-
-        loadPosts();
-
-        if (isAuth) {
-            const form = document.getElementById("create-post-form");
-            const errorEl = document.getElementById("post-error");
-            form.addEventListener("submit", async (event) => {
-                event.preventDefault();
-                errorEl.style.display = "none";
-                try {
-                    const response = await fetch(window.API_BASE + "/posts", { method: "POST", body: new FormData(form) });
-                    if (response.status === 401) { window.location.href = "/login"; return; }
-                    if (!response.ok) { throw new Error("Failed to create post"); }
-                    form.reset();
-                    loadPosts();
-                } catch (error) {
-                    errorEl.textContent = "Ошибка при публикации поста.";
-                    errorEl.style.display = "block";
+        fetch(window.API_BASE + "/posts")
+            .then(response => response.json())
+            .then(posts => {
+                postsContainer.innerHTML = "";
+                if (!posts.length) {
+                    postsContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>Пока нет публикаций. Станьте первым автором!</p></div>';
+                    return;
                 }
+                posts.forEach(renderPost);
+            })
+            .catch(() => {
+                postsContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Не удалось загрузить посты.</p></div>';
             });
-        }
     </script>
 {% endblock %}

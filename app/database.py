@@ -2,7 +2,7 @@ import hashlib
 from datetime import datetime
 from pathlib import Path
 
-from sqlalchemy import create_engine, select, func
+from sqlalchemy import create_engine, select, func, inspect, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 DB_PATH = Path(__file__).resolve().parent / "blog.db"
@@ -28,6 +28,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(unique=True)
     email: Mapped[str] = mapped_column(unique=True)
     password_hash: Mapped[str]
     secret_note: Mapped[str]
@@ -50,6 +51,13 @@ def hash_password(password: str) -> str:
 def init_db():
     Base.metadata.create_all(bind=engine)
 
+    user_columns = {column["name"] for column in inspect(engine).get_columns("users")}
+    if "username" not in user_columns:
+        with engine.begin() as connection:
+            connection.execute(text("ALTER TABLE users ADD COLUMN username VARCHAR"))
+            connection.execute(text("UPDATE users SET username = substr(email, 1, instr(email, '@') - 1)"))
+            connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_username ON users (username)"))
+
     with SessionLocal() as session:
         user_count = session.scalar(
             select(func.count()).select_from(User)
@@ -58,6 +66,7 @@ def init_db():
         if user_count == 0:
             session.add(
                 User(
+                    username="user",
                     email="user@example.com",
                     password_hash=hash_password("password"),
                     secret_note="Secret note: only authenticated users can see this."
@@ -77,6 +86,7 @@ def get_user_by_email(email: str):
 
         return {
             "id": user.id,
+            "username": user.username,
             "email": user.email,
             "password_hash": user.password_hash,
             "secret_note": user.secret_note,
@@ -95,6 +105,7 @@ def get_user_by_id(user_id: int):
 
         return {
             "id": user.id,
+            "username": user.username,
             "email": user.email,
             "password_hash": user.password_hash,
             "secret_note": user.secret_note,
@@ -132,3 +143,49 @@ def create_post(title: str, content: str, author: str):
             "content": post.content,
             "author": post.author
         }
+
+
+def create_user(username: str, email: str, password: str):
+    with SessionLocal() as session:
+        user = User(
+            username=username,
+            email=email,
+            password_hash=hash_password(password),
+            secret_note="Secret note: only authenticated users can see this."
+        )
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+        return user_to_dict(user)
+
+
+def get_user_by_username(username: str):
+    with SessionLocal() as session:
+        user = session.scalar(select(User).where(User.username == username))
+        return None if user is None else {"id": user.id, "username": user.username}
+
+
+def update_user(user_id: int, username: str, email: str, password: str | None = None):
+    with SessionLocal() as session:
+        user = session.get(User, user_id)
+        if user is None:
+            return None
+
+        user.username = username
+        user.email = email
+        if password:
+            user.password_hash = hash_password(password)
+        session.commit()
+        session.refresh(user)
+        return user_to_dict(user)
+
+
+def user_to_dict(user: User):
+    return {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "password_hash": user.password_hash,
+        "secret_note": user.secret_note,
+        "created_at": user.created_at
+    }

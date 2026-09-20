@@ -12,12 +12,13 @@
         <div class="auth-panel">
             <form method="post" action="/login" class="form auth-form">
                 <label for="email">Электронная почта</label>
-                <input type="email" id="email" name="email" value="user@example.com" required autocomplete="email">
+                <input type="email" id="email" name="email" required autocomplete="email">
                 <label for="password">Пароль</label>
-                <input type="password" id="password" name="password" value="password" required autocomplete="current-password">
+                <input type="password" id="password" name="password" required autocomplete="current-password">
                 <button type="submit">Войти<span aria-hidden="true">→</span></button>
             </form>
             {% if error %}<p class="error">Не удалось войти. Проверьте почту и пароль.</p>{% endif %}
+            <p class="form-link">Нет аккаунта? <a href="/register">Зарегистрироваться</a></p>
         </div>
     </section>
 {% endblock %}
