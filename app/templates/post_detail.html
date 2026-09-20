@@ -4,20 +4,29 @@
 
 {% block content %}
     <section class="post-detail">
-        <div class="post-detail-heading">
-            <a class="back-link" href="/">← Назад к ленте</a>
+        <a class="back-link" href="/">Назад к ленте</a>
+
+        <article class="post-card">
             <p class="eyebrow">ПУБЛИКАЦИЯ</p>
             <h1>{{ post.title }}</h1>
-            <span class="author">{{ post.author }}</span>
-        </div>
-        <article class="post-body">
-            <p>{{ post.content }}</p>
+            <div class="post-meta">
+                <div class="post-avatar">{{ post.author[0]|upper }}</div>
+                <div>
+                    <span class="post-author">{{ post.author }}</span>
+                    <span class="post-label">автор публикации</span>
+                </div>
+            </div>
+            <div class="post-body">
+                <p>{{ post.content }}</p>
+            </div>
         </article>
 
         <section class="comments-section">
             <div class="comments-heading">
-                <p class="eyebrow">ОБСУЖДЕНИЕ</p>
-                <h2>Комментарии ({{ comments|length }})</h2>
+                <div>
+                    <p class="eyebrow">ОБСУЖДЕНИЕ</p>
+                    <h2>Комментарии <span class="comments-count">{{ comments|length }}</span></h2>
+                </div>
             </div>
 
             {% if is_authenticated %}
@@ -38,13 +47,13 @@
                         <div class="comment-body">
                             <div class="comment-meta">
                                 <span class="comment-author">{{ comment.author }}</span>
-                                <span class="comment-date">{{ comment.created_at }}</span>
+                                <span class="comment-date">{{ comment.created_at|fmt_date }}</span>
                             </div>
                             <p class="comment-text">{{ comment.content }}</p>
                         </div>
                     </div>
                 {% else %}
-                    <p class="comments-empty">Пока нет комментариев. Будьте первым!</p>
+                    <p class="comments-empty">💬 Пока нет комментариев. Будьте первым!</p>
                 {% endfor %}
             </div>
         </section>

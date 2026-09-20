@@ -35,6 +35,17 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 
+def fmt_date(value):
+    try:
+        return value.strftime("%d.%m.%Y в %H:%M")
+    except AttributeError:
+        return str(value)
+
+
+templates.env.filters["fmt_date"] = fmt_date
+templates.env.globals["css_version"] = int((BASE_DIR / "static" / "style.css").stat().st_mtime)
+
+
 @app.get("/")
 async def index(request: Request):
     return templates.TemplateResponse(
