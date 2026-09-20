@@ -58,22 +58,6 @@ def init_db():
             connection.execute(text("UPDATE users SET username = substr(email, 1, instr(email, '@') - 1)"))
             connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_username ON users (username)"))
 
-    with SessionLocal() as session:
-        user_count = session.scalar(
-            select(func.count()).select_from(User)
-        )
-
-        if user_count == 0:
-            session.add(
-                User(
-                    username="user",
-                    email="user@example.com",
-                    password_hash=hash_password("password"),
-                    secret_note="Secret note: only authenticated users can see this."
-                )
-            )
-            session.commit()
-
 
 def get_user_by_email(email: str):
     with SessionLocal() as session:

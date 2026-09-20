@@ -1,6 +1,9 @@
+import os
 from pathlib import Path
 from contextlib import asynccontextmanager
 
+import uvicorn
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -11,6 +14,8 @@ from .database import (
     init_db, get_user_by_email, get_user_by_id, get_user_by_username,
     get_posts, create_post, create_user, update_user, hash_password,
 )
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent
 API_BASE = "/api"
@@ -280,3 +285,12 @@ async def api_profile(request: Request):
         "created_at": str(user["created_at"]),
         "secret_note": user["secret_note"]
     }
+
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "app.main:app",
+        host=os.getenv("HOST", "127.0.0.1"),
+        port=int(os.getenv("PORT", "8000")),
+        reload=True,
+    )
