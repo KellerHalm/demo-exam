@@ -44,6 +44,16 @@ class Post(Base):
     author: Mapped[str]
 
 
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    post_id: Mapped[int] = mapped_column(index=True)
+    author: Mapped[str]
+    content: Mapped[str]
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
@@ -126,6 +136,53 @@ def create_post(title: str, content: str, author: str):
             "title": post.title,
             "content": post.content,
             "author": post.author
+        }
+
+
+def get_post(post_id: int):
+    with SessionLocal() as session:
+        post = session.get(Post, post_id)
+        if post is None:
+            return None
+        return {
+            "id": post.id,
+            "title": post.title,
+            "content": post.content,
+            "author": post.author
+        }
+
+
+def get_comments(post_id: int):
+    with SessionLocal() as session:
+        comments = session.scalars(
+            select(Comment)
+            .where(Comment.post_id == post_id)
+            .order_by(Comment.id.asc())
+        ).all()
+        return [
+            {
+                "id": c.id,
+                "post_id": c.post_id,
+                "author": c.author,
+                "content": c.content,
+                "created_at": c.created_at
+            }
+            for c in comments
+        ]
+
+
+def create_comment(post_id: int, author: str, content: str):
+    with SessionLocal() as session:
+        comment = Comment(post_id=post_id, author=author, content=content)
+        session.add(comment)
+        session.commit()
+        session.refresh(comment)
+        return {
+            "id": comment.id,
+            "post_id": comment.post_id,
+            "author": comment.author,
+            "content": comment.content,
+            "created_at": comment.created_at
         }
 
 

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+    <section class="post-detail">
+        <div class="post-detail-heading">
+            <a class="back-link" href="/">← Назад к ленте</a>
+            <p class="eyebrow">ПУБЛИКАЦИЯ</p>
+            <h1>{{ post.title }}</h1>
+            <span class="author">{{ post.author }}</span>
+        </div>
+        <article class="post-body">
+            <p>{{ post.content }}</p>
+        </article>
+
+        <section class="comments-section">
+            <div class="comments-heading">
+                <p class="eyebrow">ОБСУЖДЕНИЕ</p>
+                <h2>Комментарии ({{ comments|length }})</h2>
+            </div>
+
+            {% if is_authenticated %}
+                <form method="post" action="/posts/{{ post.id }}/comments" class="form comment-form">
+                    <label for="content">Ваш комментарий</label>
+                    <textarea id="content" name="content" required placeholder="Напишите комментарий…"></textarea>
+                    <button type="submit">Отправить <span aria-hidden="true">→</span></button>
+                    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+                </form>
+            {% else %}
+                <p class="comments-login-hint">Чтобы оставить комментарий, <a href="/login">войдите</a> или <a href="/register">зарегистрируйтесь</a>.</p>
+            {% endif %}
+
+            <div class="comments-list">
+                {% for comment in comments %}
+                    <div class="comment">
+                        <div class="comment-avatar">{{ comment.author[0]|upper }}</div>
+                        <div class="comment-body">
+                            <div class="comment-meta">
+                                <span class="comment-author">{{ comment.author }}</span>
+                                <span class="comment-date">{{ comment.created_at }}</span>
+                            </div>
+                            <p class="comment-text">{{ comment.content }}</p>
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="comments-empty">Пока нет комментариев. Будьте первым!</p>
+                {% endfor %}
+            </div>
+        </section>
+    </section>
+{% endblock %}

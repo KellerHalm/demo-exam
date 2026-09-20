@@ -37,7 +37,11 @@
             const author = document.createElement("span");
             author.className = "author";
             author.textContent = post.author;
-            article.append(title, content, author);
+            const link = document.createElement("a");
+            link.className = "card-link";
+            link.href = "/posts/" + post.id;
+            link.textContent = "Читать и комментировать →";
+            article.append(title, content, author, link);
             postsContainer.appendChild(article);
         }
 

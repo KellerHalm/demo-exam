@@ -12,7 +12,8 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from .database import (
     init_db, get_user_by_email, get_user_by_id, get_user_by_username,
-    get_posts, create_post, create_user, update_user, hash_password,
+    get_posts, get_post, create_post, create_user, update_user, hash_password,
+    get_comments, create_comment,
 )
 
 load_dotenv()
@@ -218,6 +219,55 @@ async def new_post(request: Request, title: str = Form(...), content: str = Form
     return RedirectResponse(url="/", status_code=303)
 
 
+@app.get("/posts/{post_id}")
+async def post_detail(request: Request, post_id: int):
+    post = get_post(post_id)
+    if not post:
+        return RedirectResponse(url="/", status_code=303)
+    comments = get_comments(post_id)
+    is_authenticated = bool(request.session.get("user_id"))
+    return templates.TemplateResponse(
+        name="post_detail.html", request=request,
+        context={
+            "api_base": API_BASE,
+            "post": post,
+            "comments": comments,
+            "is_authenticated": is_authenticated,
+            "error": None,
+        }
+    )
+
+
+@app.post("/posts/{post_id}/comments")
+async def add_comment(request: Request, post_id: int, content: str = Form(...)):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=303)
+    user = get_user_by_id(user_id)
+    if not user:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    post = get_post(post_id)
+    if not post:
+        return RedirectResponse(url="/", status_code=303)
+    clean_content = content.strip()
+    if not clean_content:
+        comments = get_comments(post_id)
+        return templates.TemplateResponse(
+            name="post_detail.html", request=request,
+            context={
+                "api_base": API_BASE,
+                "post": post,
+                "comments": comments,
+                "is_authenticated": True,
+                "error": "Комментарий не может быть пустым.",
+            },
+            status_code=400,
+        )
+    create_comment(post_id, user["username"], clean_content)
+    return RedirectResponse(url=f"/posts/{post_id}", status_code=303)
+
+
 @app.get(API_BASE + "/health")
 async def api_health():
     return {"status": "ok"}
@@ -257,6 +307,34 @@ async def api_create_post(request: Request, title: str = Form(...), content: str
         )
 
     return create_post(clean_title, clean_content, user["username"])
+
+
+@app.get(API_BASE + "/posts/{post_id}/comments")
+async def api_comments(post_id: int):
+    post = get_post(post_id)
+    if not post:
+        return JSONResponse(status_code=404, content={"detail": "Post not found"})
+    return get_comments(post_id)
+
+
+@app.post(API_BASE + "/posts/{post_id}/comments")
+async def api_create_comment(
+    request: Request, post_id: int, content: str = Form(...)
+):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return JSONResponse(status_code=401, content={"detail": "Not authenticated"})
+    user = get_user_by_id(user_id)
+    if not user:
+        request.session.clear()
+        return JSONResponse(status_code=401, content={"detail": "Not authenticated"})
+    post = get_post(post_id)
+    if not post:
+        return JSONResponse(status_code=404, content={"detail": "Post not found"})
+    clean_content = content.strip()
+    if not clean_content:
+        return JSONResponse(status_code=400, content={"detail": "Comment cannot be empty"})
+    return create_comment(post_id, user["username"], clean_content)
 
 
 @app.get(API_BASE + "/profile")
