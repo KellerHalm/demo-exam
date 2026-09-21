@@ -43,7 +43,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     for error in exc.errors():
         field = " -> ".join(str(loc) for loc in error["loc"] if loc != "body")
         errors.append({
-            "поле": field,
+            "field": field,
             "message": f"Поле {field} обязательно к заполнению",
             "type": error["type"]
         })
