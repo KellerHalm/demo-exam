@@ -136,9 +136,9 @@ async def register(request: Request, username: str = Form(...), email: str = For
 
     username, email = account_data
     if get_user_by_username(username) or get_user_by_email(email):
-        return templates.TemplateResponse(
-            name="register.html", request=request,
-            context={"error": "Пользователь с таким именем или почтой уже существует.", "api_base": API_BASE},
+
+        return JSONResponse(
+            content={"error": "Пользователь с таким именем или почтой уже существует."},
             status_code=409
         )
 
