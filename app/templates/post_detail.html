@@ -40,22 +40,72 @@
                 <p class="comments-login-hint">Чтобы оставить комментарий, <a href="/login">войдите</a> или <a href="/register">зарегистрируйтесь</a>.</p>
             {% endif %}
 
-            <div class="comments-list">
-                {% for comment in comments %}
-                    <div class="comment">
-                        <div class="comment-avatar">{{ comment.author[0]|upper }}</div>
-                        <div class="comment-body">
-                            <div class="comment-meta">
-                                <span class="comment-author">{{ comment.author }}</span>
-                                <span class="comment-date">{{ comment.created_at|fmt_date }}</span>
-                            </div>
-                            <p class="comment-text">{{ comment.content }}</p>
-                        </div>
-                    </div>
-                {% else %}
-                    <p class="comments-empty">💬 Пока нет комментариев. Будьте первым!</p>
-                {% endfor %}
+            <div id="comments-list" class="comments-list" data-post-id="{{ post.id }}">
+                <div class="list-loading"><span></span>Загружаем комментарии…</div>
             </div>
         </section>
     </section>
+
+    <script>
+        const commentsList = document.getElementById("comments-list");
+        const postId = commentsList.dataset.postId;
+        const commentsCount = document.querySelector(".comments-count");
+
+        function formatDate(value) {
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return String(value);
+            const pad = number => String(number).padStart(2, "0");
+            return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()} в ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        }
+
+        function renderComment(comment) {
+            const item = document.createElement("div");
+            item.className = "comment";
+
+            const avatar = document.createElement("div");
+            avatar.className = "comment-avatar";
+            avatar.textContent = (comment.author || "?").charAt(0).toUpperCase();
+
+            const body = document.createElement("div");
+            body.className = "comment-body";
+
+            const meta = document.createElement("div");
+            meta.className = "comment-meta";
+
+            const author = document.createElement("span");
+            author.className = "comment-author";
+            author.textContent = comment.author;
+
+            const date = document.createElement("span");
+            date.className = "comment-date";
+            date.textContent = formatDate(comment.created_at);
+
+            const text = document.createElement("p");
+            text.className = "comment-text";
+            text.textContent = comment.content;
+
+            meta.append(author, date);
+            body.append(meta, text);
+            item.append(avatar, body);
+            return item;
+        }
+
+        fetch(window.API_BASE + "/posts/" + postId + "/comments")
+            .then(response => {
+                if (!response.ok) throw new Error("HTTP " + response.status);
+                return response.json();
+            })
+            .then(comments => {
+                commentsList.innerHTML = "";
+                commentsCount.textContent = comments.length;
+                if (!comments.length) {
+                    commentsList.innerHTML = '<p class="comments-empty">💬 Пока нет комментариев. Будьте первым!</p>';
+                    return;
+                }
+                comments.forEach(comment => commentsList.appendChild(renderComment(comment)));
+            })
+            .catch(() => {
+                commentsList.innerHTML = '<p class="comments-empty">⚠️ Не удалось загрузить комментарии. Обновите страницу.</p>';
+            });
+    </script>
 {% endblock %}

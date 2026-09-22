@@ -1,11 +1,26 @@
 import hashlib
+import os
 from datetime import datetime
 from pathlib import Path
 
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, select, func, inspect, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
-DB_PATH = Path(__file__).resolve().parent / "blog.db"
+load_dotenv()
+
+APP_DIR = Path(__file__).resolve().parent
+DEFAULT_DB_PATH = APP_DIR / "blog.db"
+
+_db_setting = os.getenv("DB_PATH", "").strip()
+if _db_setting:
+    DB_PATH = Path(_db_setting).expanduser()
+    if not DB_PATH.is_absolute():
+        # относительный путь считаем от корня проекта (родителя пакета app)
+        DB_PATH = APP_DIR.parent / DB_PATH
+else:
+    DB_PATH = DEFAULT_DB_PATH
+
 DATABASE_URL = "sqlite:///" + str(DB_PATH)
 
 engine = create_engine(

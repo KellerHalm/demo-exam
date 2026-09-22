@@ -22,7 +22,7 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent
 API_BASE = "/api"
-SECRET_KEY = "your secret key"
+SECRET_KEY = os.getenv("SECRET_KEY") or "change-me-in-env-file"
 
 
 @asynccontextmanager

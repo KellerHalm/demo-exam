@@ -689,6 +689,27 @@ button:hover {
 }.comments-list { 
     display: grid; 
     gap: 16px; 
+}
+.list-loading { 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 10px; 
+    padding: 28px; 
+    border: 1px dashed #adb9ae; 
+    border-radius: 14px; 
+    background: rgba(255, 255, 255, .5); 
+    color: var(--muted); 
+    font-size: 14px; 
+    text-align: center; 
+}
+.list-loading span { 
+    display: inline-block; 
+    width: 10px; 
+    height: 10px; 
+    border-radius: 50%; 
+    background: var(--accent); 
+    animation: pulse 1.2s infinite; 
 }.comment { 
     display: flex; 
     gap: 14px; 
